@@ -67,7 +67,8 @@ class valid_dataset(Dataset):
 
     def __getitem__(self,idx):
         tiff = tvf.to_tensor(Image.open(self.tiff_list[idx]))
-        mask = tvf.to_tensor(Image.open(self.mask_list[idx]))
+        # mask = tvf.to_tensor(Image.open(self.mask_list[idx]))
+        mask = 0
         name = self.file_list[idx]
         return tiff,mask,name 
 
@@ -142,8 +143,9 @@ def val(args,epoch,net,dataloader,ii,val_len,writer):
     f1_ave = 0
     with tqdm(total=val_len, desc='Validation' if args.mode=='train' else args.mode, unit='img') as pbar:
         for idx,data in enumerate(dataloader):
-            img, mask,name = data
-            img, mask = img.to(args.device), mask[0,0,:,:].cpu().detach().numpy()
+            img, mask, name = data
+            img = img.to(args.device)
+            # mask = mask[0,0,:,:].cpu().detach().numpy()
             with torch.no_grad():
                 pre_segs, _ = net(img)
                 pre_segs = torch.sigmoid(pre_segs[3]).cpu().detach().numpy()[0,0]
@@ -162,7 +164,7 @@ def val(args,epoch,net,dataloader,ii,val_len,writer):
                 else:
                     Image.fromarray(pre_segs/np.max(pre_segs)*255).convert('RGB').save('./records/segmentation/test/{}.png'.format(name[0]))
                     # print('Generating samples for segmentation test: Image: {}/{} '.format(idx,val_len))
-            pbar.set_postfix(**{'F1-score': round(f1_ave,3)})
+            # pbar.set_postfix(**{'F1-score': round(f1_ave,3)})
             pbar.update()
     print('Validation Summary: {}/{} || Average loss: {}'.format(epoch,args.epochs,round(f1_ave,3)))
     writer.add_scalar('val_f1_score',f1_ave,ii)

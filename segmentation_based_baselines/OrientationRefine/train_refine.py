@@ -74,7 +74,8 @@ class valid_dataset(Dataset):
     def __getitem__(self,idx):
         tiff = tvf.to_tensor(Image.open(self.tiff_list[idx]))
         seg = tvf.to_tensor(Image.open(self.processed_mask_list[idx]))
-        mask = tvf.to_tensor(Image.open(self.mask_list[idx]))
+        # mask = tvf.to_tensor(Image.open(self.mask_list[idx]))
+        mask = 0
         name = self.file_list[idx]
         return tiff,mask,seg,name 
 
@@ -146,7 +147,7 @@ def val(args,epoch,net,dataloader,ii,val_len,writer):
     with tqdm(total=val_len, desc='Validation' if args.mode=='train' else args.mode, unit='img') as pbar:
         for idx,data in enumerate(dataloader):
             img, mask, seg,name = data
-            mask = mask[0,0].cpu().detach().numpy()
+            # mask = mask[0,0].cpu().detach().numpy()
             img, seg = img.to(args.device), seg[:,0:1,:,:].type(torch.FloatTensor).to(args.device)
             temp = seg
             for refine_idx in range(3):
